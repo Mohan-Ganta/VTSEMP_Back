@@ -16,7 +16,7 @@ app.use(function (req, res, next) {
   });
 
 app.use(cors({
-  origin: 'https://vtsemp-back.vercel.app',
+  origin: 'https://vtsemp.netlify.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true ,
   allowedHeaders: ['Content-Type', 'Authorization']
