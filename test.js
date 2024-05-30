@@ -4,11 +4,17 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require("cors");
 const app = express();
-const jwt_secret= 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4'
+const jwt_secret= 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Logging Middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWrites=true&w=majority&appName=VTSEMPD', {
@@ -99,12 +105,24 @@ app.get('/session/:sessionId', async (req, res) => {
       return res.status(404).send('Session not found');
     }
 
-    const duration = session.logoutTime ? (session.logoutTime - session.loginTime) / 1000 : null;
-    res.status(200).json({ session, duration });
+    const loginTime = session.loginTime.toLocaleString();
+    const logoutTime = session.logoutTime ? session.logoutTime.toLocaleString() : '-';
+    const duration = session.logoutTime ? calculateDuration(session.loginTime, session.logoutTime) : '-';
+
+    res.status(200).json({ loginTime, logoutTime, duration });
   } catch (error) {
     res.status(500).send('Error fetching session info');
   }
 });
+
+// Function to calculate duration
+function calculateDuration(loginTime, logoutTime) {
+  const diff = Math.abs(logoutTime - loginTime);
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  return `${hours}h ${minutes}m ${seconds}s`;
+}
 
 // Protected route
 app.get('/dashboard', (req, res) => {
@@ -119,36 +137,6 @@ app.get('/dashboard', (req, res) => {
     res.status(401).send('Invalid token');
   }
 });
-
-// Get session info
-app.get('/session/:sessionId', async (req, res) => {
-    const { sessionId } = req.params;
-  
-    try {
-      const session = await Session.findById(sessionId).populate('userId', 'username email');
-      if (!session) {
-        return res.status(404).send('Session not found');
-      }
-  
-      const loginTime = session.loginTime.toLocaleString();
-      const logoutTime = session.logoutTime ? session.logoutTime.toLocaleString() : '-';
-      const duration = session.logoutTime ? calculateDuration(session.loginTime, session.logoutTime) : '-';
-  
-      res.status(200).json({ loginTime, logoutTime, duration });
-    } catch (error) {
-      res.status(500).send('Error fetching session info');
-    }
-  });
-  
-  // Function to calculate duration
-  function calculateDuration(loginTime, logoutTime) {
-    const diff = Math.abs(logoutTime - loginTime);
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    return `${hours}h ${minutes}m ${seconds}s`;
-  }
-  
 
 app.listen(4000, () => {
   console.log('Server is running on port 4000');
