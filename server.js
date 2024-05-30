@@ -18,7 +18,8 @@ app.use(function (req, res, next) {
 app.use(cors({
   origin: 'https://vtsemp-back.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  credentials: true ,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
