@@ -56,6 +56,11 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.get('/',()=>{
+
+  return res.status(200).send("Welcome to Backend");
+})
+
 // Login route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
