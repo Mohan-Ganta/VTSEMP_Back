@@ -1,0 +1,17 @@
+
+const mongoUri = "mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWrites=true&w=majority&appName=VTSEMPD";
+const secret = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4'; 
+
+POST /register
+{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+
+POST /login
+{
+    "username": "testuser",
+    "password": "password123"
+}
