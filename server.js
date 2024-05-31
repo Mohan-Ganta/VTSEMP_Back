@@ -7,7 +7,7 @@ const app = express();
 const jwt_secret= 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
 
 
-app.use(cors(''));
+app.use(cors());
 app.use(express.json());
 
 // app.use(function (req, res, next) {
@@ -25,11 +25,7 @@ app.use(express.json());
 // }));
 
 
-// Logging Middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
-});
+
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWrites=true&w=majority&appName=VTSEMPD', {
@@ -71,10 +67,17 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/',()=>{
+app.get("/", (req, res) => {
+  res.send("Hello from Express!");
+});
 
-  return res.status(200).send("Welcome to Backend");
-})
+app.get("/data", (req, res) => {
+  const data = {
+    message: "This is some data fetched from the API",
+    timestamp: new Date().toISOString(),
+  };
+  res.json(data);
+});
 
 // Login route
 app.post('/login', async (req, res) => {
@@ -158,7 +161,6 @@ app.get('/dashboard', (req, res) => {
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on http://0.0.0.0:${PORT}`);
+app.listen(4000, () => {
+  console.log('Server is running on port 4000');
 });
