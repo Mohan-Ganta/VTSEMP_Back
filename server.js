@@ -4,12 +4,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require("cors");
 const app = express();
-const jwt_secret= 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
-
+const jwt_secret = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
 
 app.use(cors());
 app.use(express.json());
-
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWrites=true&w=majority&appName=VTSEMPD', {
@@ -22,31 +20,46 @@ mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWr
 });
 
 // User Schema
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true }
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', userSchema);
 
-
-const Leaveschema = new mongoose.Schema({
+// Leave Schema
+const leaveSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  date:{type: Date},
-  reason :{type: String},
-  satus: {type: String}
+  date: { type: Date, default: Date.now },
+  reason: { type: String, required: true },
+  status: { type: String, default: 'Pending' }
 });
 
-const Leave = mongoose.model('Leave', Leaveschema);
+const Leave = mongoose.model('Leave', leaveSchema);
 
-const UserLogSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  loginTime: { type: Date, required: true },
+// User Log Schema
+const userLogSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  loginTime: { type: Date, required: true, default: Date.now },
   logoutTime: { type: Date },
   workingTime: { type: Number }  // Working time in milliseconds
 });
 
-const UserLog = mongoose.model('UserLogSchema', UserLogSchema);
+const UserLog = mongoose.model('UserLog', userLogSchema);
+
+// Middleware to verify JWT
+const verifyToken = (req, res, next) => {
+  const token = req.header('auth-token');
+  if (!token) return res.status(401).send('Access denied');
+
+  try {
+    const verified = jwt.verify(token, jwt_secret);
+    req.user = verified;
+    next();
+  } catch (err) {
+    res.status(400).send('Invalid token');
+  }
+};
 
 // Register route
 app.post('/register', async (req, res) => {
@@ -65,6 +78,7 @@ app.get("/", (req, res) => {
   res.send("Hello from Express!");
 });
 
+// Login route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username });
@@ -84,7 +98,8 @@ app.post('/login', async (req, res) => {
   res.json({ token, logId: userLog._id });
 });
 
-app.post('/logout', async (req, res) => {
+// Logout route
+app.post('/logout', verifyToken, async (req, res) => {
   const { logId } = req.body;
 
   try {
@@ -103,7 +118,8 @@ app.post('/logout', async (req, res) => {
   }
 });
 
-app.get('/attendance', async (req, res) => {
+// Attendance route
+app.get('/attendance', verifyToken, async (req, res) => {
   try {
     const attendanceData = await UserLog.find().populate('userId', 'username');
     res.json(attendanceData);
@@ -115,5 +131,3 @@ app.get('/attendance', async (req, res) => {
 app.listen(4000, () => {
   console.log('Server is running on port 4000');
 });
-
-
