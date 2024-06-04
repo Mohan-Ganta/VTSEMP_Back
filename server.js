@@ -10,22 +10,6 @@ const jwt_secret= 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1
 app.use(cors());
 app.use(express.json());
 
-// app.use(function (req, res, next) {
-//   //Enabling CORS
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
-//   next();
-//   });
-
-// app.use(cors({
-//   origin: 'https://vtsemp-back.vercel.app',
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//   credentials: true
-// }));
-
-
-
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWrites=true&w=majority&appName=VTSEMPD', {
@@ -45,14 +29,24 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
-// Session Schema
-const SessionSchema = new mongoose.Schema({
+
+const Leaveschema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  loginTime: { type: Date, default: Date.now },
-  logoutTime: { type: Date }
+  date:{type: Date},
+  reason :{type: String},
+  satus: {type: String}
 });
 
-const Session = mongoose.model('Session', SessionSchema);
+const Leave = mongoose.model('Leave', Leaveschema);
+
+const UserLogSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  loginTime: { type: Date, required: true },
+  logoutTime: { type: Date },
+  workingTime: { type: Number }  // Working time in milliseconds
+});
+
+const UserLog = mongoose.model('UserLogSchema', UserLogSchema);
 
 // Register route
 app.post('/register', async (req, res) => {
@@ -71,15 +65,6 @@ app.get("/", (req, res) => {
   res.send("Hello from Express!");
 });
 
-app.get("/data", (req, res) => {
-  const data = {
-    message: "This is some data fetched from the API",
-    timestamp: new Date().toISOString(),
-  };
-  res.json(data);
-});
-
-// Login route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username });
@@ -93,24 +78,24 @@ app.post('/login', async (req, res) => {
   const token = jwt.sign({ userId: user._id }, jwt_secret, { expiresIn: '1h' });
 
   // Record login time
-  const session = new Session({ userId: user._id });
-  await session.save();
+  const userLog = new UserLog({ userId: user._id, loginTime: new Date() });
+  await userLog.save();
 
-  res.json({ token, sessionId: session._id });
+  res.json({ token, logId: userLog._id });
 });
 
-// Logout route
 app.post('/logout', async (req, res) => {
-  const { sessionId } = req.body;
+  const { logId } = req.body;
 
   try {
-    const session = await Session.findById(sessionId);
-    if (!session) {
-      return res.status(404).send('Session not found');
+    const userLog = await UserLog.findById(logId);
+    if (!userLog) {
+      return res.status(404).send('Log not found');
     }
 
-    session.logoutTime = new Date();
-    await session.save();
+    userLog.logoutTime = new Date();
+    userLog.workingTime = userLog.logoutTime - userLog.loginTime;
+    await userLog.save();
 
     res.status(200).send('Logged out successfully');
   } catch (error) {
@@ -118,49 +103,17 @@ app.post('/logout', async (req, res) => {
   }
 });
 
-// Get session info
-app.get('/session/:sessionId', async (req, res) => {
-  const { sessionId } = req.params;
-
+app.get('/attendance', async (req, res) => {
   try {
-    const session = await Session.findById(sessionId).populate('userId', 'username email');
-    if (!session) {
-      return res.status(404).send('Session not found');
-    }
-
-    const loginTime = session.loginTime.toLocaleString();
-    const logoutTime = session.logoutTime ? session.logoutTime.toLocaleString() : '-';
-    const duration = session.logoutTime ? calculateDuration(session.loginTime, session.logoutTime) : '-';
-
-    res.status(200).json({ loginTime, logoutTime, duration });
+    const attendanceData = await UserLog.find().populate('userId', 'username');
+    res.json(attendanceData);
   } catch (error) {
-    res.status(500).send('Error fetching session info');
-  }
-});
-
-// Function to calculate duration
-function calculateDuration(loginTime, logoutTime) {
-  const diff = Math.abs(logoutTime - loginTime);
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-  return `${hours}h ${minutes}m ${seconds}s`;
-}
-
-// Protected route
-app.get('/dashboard', (req, res) => {
-  const token = req.headers['authorization'];
-  if (!token) {
-    return res.status(401).send('Access denied');
-  }
-  try {
-    const decoded = jwt.verify(token, jwt_secret);
-    res.send('Welcome to your dashboard');
-  } catch (error) {
-    res.status(401).send('Invalid token');
+    res.status(500).send('Error fetching attendance data');
   }
 });
 
 app.listen(4000, () => {
   console.log('Server is running on port 4000');
 });
+
+
