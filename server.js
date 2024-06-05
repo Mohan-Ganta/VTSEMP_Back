@@ -256,12 +256,17 @@ app.get('/announcements', async (req, res) => {
   }
 });
 
-// Update Announcement
+
 app.put('/announcements/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { message, dateTime } = req.body;
-    const updatedAnnouncement = await Announcement.findByIdAndUpdate(id, { message, dateTime }, { new: true });
+    const { message } = req.body;
+    const dateTime = new Date().toLocaleString(); // Automatically set the current date and time
+    const updatedAnnouncement = await Announcement.findByIdAndUpdate(
+      id,
+      { message, dateTime },
+      { new: true }
+    );
     res.status(200).json({ success: true, announcement: updatedAnnouncement });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
