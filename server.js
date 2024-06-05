@@ -5,9 +5,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
 const jwt_secret = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
 app.use(cors({
   origin: '*',
@@ -57,7 +54,7 @@ const UserLog = mongoose.model('UserLog', userLogSchema);
 
 // Middleware to verify JWT
 const verifyToken = (req, res, next) => {
-  const token = req.header('auth-token');
+  const token = req.header('Authorization') && req.header('Authorization').split(' ')[1];
   if (!token) return res.status(401).send('Access denied');
 
   try {
