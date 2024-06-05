@@ -92,61 +92,61 @@ const verifyToken = (req, res, next) => {
 };
 
 // Register route
-// app.post('/register', async (req, res) => {
-//   const { username, password } = req.body;
-//   const hashedPassword = await bcrypt.hash(password, 10);
-//   try {
-//     const user = new User({ username, password: hashedPassword });
-//     await user.save();
-//     res.status(201).send('User registered');
-//   } catch (error) {
-//     res.status(400).send('Error registering user');
-//   }
-// });
+app.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const user = new User({ username, password: hashedPassword });
+    await user.save();
+    res.status(201).send('User registered');
+  } catch (error) {
+    res.status(400).send('Error registering user');
+  }
+});
 
 
 // File storage setup for multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = './uploads';
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-const upload = multer({ storage });
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     const dir = './uploads';
+//     if (!fs.existsSync(dir)) {
+//       fs.mkdirSync(dir);
+//     }
+//     cb(null, dir);
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname));
+//   },
+// });
+// const upload = multer({ storage });
 
-// Routes
-app.post('/register', upload.fields([
-  { name: 'profilePhoto', maxCount: 1 },
-  { name: 'offerLetter', maxCount: 1 },
-]), async (req, res) => {
-  try {
-    const { username, id, email, mobile, dob, doj, designation, password } = req.body;
+// // Routes
+// app.post('/register', upload.fields([
+//   { name: 'profilePhoto', maxCount: 1 },
+//   { name: 'offerLetter', maxCount: 1 },
+// ]), async (req, res) => {
+//   try {
+//     const { username, id, email, mobile, dob, doj, designation, password } = req.body;
 
-    const user = new User({
-      username,
-      id,
-      email,
-      mobile,
-      dob,
-      doj,
-      designation,
-      profilePhoto: req.files['profilePhoto'] ? req.files['profilePhoto'][0].path : null,
-      offerLetter: req.files['offerLetter'] ? req.files['offerLetter'][0].path : null,
-      password,
-    });
+//     const user = new User({
+//       username,
+//       id,
+//       email,
+//       mobile,
+//       dob,
+//       doj,
+//       designation,
+//       profilePhoto: req.files['profilePhoto'] ? req.files['profilePhoto'][0].path : null,
+//       offerLetter: req.files['offerLetter'] ? req.files['offerLetter'][0].path : null,
+//       password,
+//     });
 
-    await user.save();
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+//     await user.save();
+//     res.status(201).json({ message: 'User registered successfully' });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// });
 
 
 app.get("/", (req, res) => {
