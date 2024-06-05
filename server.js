@@ -94,8 +94,9 @@ const verifyToken = (req, res, next) => {
 // Register route
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
   try {
-    const user = new User({ username, password });
+    const user = new User({ username, password: hashedPassword });
     await user.save();
     res.status(201).send('User registered');
   } catch (error) {
@@ -159,7 +160,7 @@ app.post('/login', async (req, res) => {
   if (!user) {
     return res.status(400).send('Invalid credentials');
   }
-  const isMatch = await compare(password, user.password);
+  const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     return res.status(400).send('Invalid credentials');
   }
