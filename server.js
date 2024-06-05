@@ -78,6 +78,18 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// Task Schema
+const taskSchema = new mongoose.Schema({
+  projectName: String,
+  deadline: Date,
+  brief: String,
+  projectLeader: String,
+  projectMembers: [String],
+  status: String
+});
+
+const Task = mongoose.model('Task', taskSchema);
+
 app.get("/", (req, res) => {
   res.send("Hello from Express!");
 });
@@ -127,6 +139,29 @@ app.get('/attendance', verifyToken, async (req, res) => {
     res.status(500).send('Error fetching attendance data');
   }
 });
+
+
+// Create a new task
+app.post('/tasks', async (req, res) => {
+  try {
+    const task = new Task(req.body);
+    await task.save();
+    res.status(201).send(task);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+// Get all tasks
+app.get('/tasks', async (req, res) => {
+  try {
+    const tasks = await Task.find();
+    res.send(tasks);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 
 app.listen(4000, () => {
   console.log('Server is running on port 4000');
