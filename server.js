@@ -165,10 +165,10 @@ app.get('/tasks', async (req, res) => {
 });
 
 // Delete task by ID
-app.delete('/tasks/:id', async (req, res) => {
-  const { id } = req.params;
+app.delete('/tasks/:projectName', async (req, res) => {
+  const { projectName } = req.params;
   try {
-    const task = await Task.findByIdAndDelete(id);
+    const task = await Task.findByIdAndDelete(projectName);
     if (!task) {
       return res.status(404).send({ message: 'Task not found' });
     }
