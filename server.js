@@ -11,7 +11,7 @@ const fs = require('fs');
 
 
 app.use(cors({
-  origin: 'https://vtsemp-back.onrender.com',
+  origin: 'https://vtsemp.netlify.app/',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
