@@ -94,7 +94,7 @@ const verifyToken = (req, res, next) => {
 // Register route
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await (password, 10);
   try {
     const user = new User({ username, password: hashedPassword });
     await user.save();
