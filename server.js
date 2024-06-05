@@ -130,15 +130,17 @@ app.post('/logout', verifyToken, async (req, res) => {
   }
 });
 
-// Attendance route
-app.get('/attendance', verifyToken, async (req, res) => {
+// Attendance route for a specific user :userId
+app.get('/attendance/', verifyToken, async (req, res) => {
   try {
-    const attendanceData = await UserLog.find().populate('userId', 'username');
+    const userId = req.params.userId;
+    const attendanceData = await UserLog.find({ userId }).populate('userId', 'username');
     res.json(attendanceData);
   } catch (error) {
     res.status(500).send('Error fetching attendance data');
   }
 });
+
 
 
 // Create a new task
@@ -161,6 +163,21 @@ app.get('/tasks', async (req, res) => {
     res.status(500).send(error);
   }
 });
+
+// Delete task by ID
+app.delete('/tasks/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await Task.findByIdAndDelete(id);
+    if (!task) {
+      return res.status(404).send({ message: 'Task not found' });
+    }
+    res.send({ message: 'Task deleted successfully' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 
 
 app.listen(4000, () => {
