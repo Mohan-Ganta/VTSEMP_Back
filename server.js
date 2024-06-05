@@ -103,32 +103,17 @@ const announcementSchema = new mongoose.Schema({
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
 
-// Leave schema
+
+// MongoDB Schema
 const leaveSchema = new mongoose.Schema({
-  date: {
-    type: Date,
-    required: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  id: {
-    type: String,
-    required: true
-  },
-  reason: {
-    type: String,
-    required: true
-  },
-  status: {
-    type: String,
-    required: true
-  }
+  date: { type: Date, default: Date.now },
+  name: String,
+  id: String,
+  reason: String,
+  status: { type: String, default: "Pending" },
 });
+const Leave = mongoose.model("Leave", leaveSchema);
 
-
-const Leave = mongoose.model('Leave', leaveSchema);
 
 
 
@@ -305,50 +290,46 @@ app.delete('/announcements/:id', async (req, res) => {
   }
 });
 
-//leave
-// API routes
-app.post('/leave', async (req, res) => {
+
+app.get("/leave", async (req, res) => {
   try {
-    const leave = new Leave(req.body);
-    await leave.save();
-    res.status(201).send(leave);
+    const leaveRequests = await Leave.find();
+    res.json(leaveRequests);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-app.get('/leave', async (req, res) => {
+app.post("/leave", async (req, res) => {
+  const leave = new Leave({
+    name: req.body.name,
+    id: req.body.id,
+    reason: req.body.reason,
+  });
   try {
-    const leaves = await Leave.find();
-    res.send(leaves);
+    const newLeave = await leave.save();
+    res.status(201).json(newLeave);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(400).json({ message: error.message });
   }
 });
 
-app.patch('/leave/:id', async (req, res) => {
+app.put("/leave/:id", async (req, res) => {
   try {
-    const leave = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!leave) {
-      return res.status(404).send({ error: 'Leave not found' });
+    const leave = await Leave.findById(req.params.id);
+    if (leave == null) {
+      return res.status(404).json({ message: "Leave request not found" });
     }
-    res.send(leave);
+    if (req.body.status) {
+      leave.status = req.body.status;
+    }
+    const updatedLeave = await leave.save();
+    res.json(updatedLeave);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).json({ message: error.message });
   }
 });
 
-app.delete('/leave/:id', async (req, res) => {
-  try {
-    const leave = await Leave.findByIdAndDelete(req.params.id);
-    if (!leave) {
-      return res.status(404).send({ error: 'Leave not found' });
-    }
-    res.send(leave);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-});
 
 
 app.listen(4000, () => {
