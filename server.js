@@ -10,7 +10,11 @@ const path = require('path');
 const fs = require('fs');
 
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://vtsemp-back.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
