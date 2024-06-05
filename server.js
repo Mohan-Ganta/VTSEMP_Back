@@ -1,15 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-const cors = require("cors");
+const cors = require('cors');
 const app = express();
 const jwt_secret = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
 
 app.use(cors({
   origin: '*',
@@ -29,26 +27,6 @@ mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWr
 }).catch(err => {
   console.error('Error connecting to MongoDB', err);
 });
-
-
-
-// // Mongoose Schema and Model
-// const userSchema = new mongoose.Schema({
-//   username: { type: String, required: true },
-//   id: { type: String, required: true },
-//   email: { type: String, required: true },
-//   mobile: { type: String, required: true },
-//   dob: { type: Date, required: true },
-//   doj: { type: Date, required: true },
-//   designation: { type: String, required: true },
-//   profilePhoto: { type: String },
-//   offerLetter: { type: String },
-//   password: { type: String, required: true },
-// });
-
-// const User = mongoose.model('User', userSchema);
-
-// Leave Schema
 
 // User Schema
 const UserSchema = new mongoose.Schema({
@@ -94,60 +72,14 @@ const verifyToken = (req, res, next) => {
 // Register route
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
   try {
-    const user = new User({ username, password: hashedPassword });
+    const user = new User({ username, password });
     await user.save();
     res.status(201).send('User registered');
   } catch (error) {
     res.status(400).send('Error registering user');
   }
 });
-
-
-// File storage setup for multer
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     const dir = './uploads';
-//     if (!fs.existsSync(dir)) {
-//       fs.mkdirSync(dir);
-//     }
-//     cb(null, dir);
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, Date.now() + path.extname(file.originalname));
-//   },
-// });
-// const upload = multer({ storage });
-
-// // Routes
-// app.post('/register', upload.fields([
-//   { name: 'profilePhoto', maxCount: 1 },
-//   { name: 'offerLetter', maxCount: 1 },
-// ]), async (req, res) => {
-//   try {
-//     const { username, id, email, mobile, dob, doj, designation, password } = req.body;
-
-//     const user = new User({
-//       username,
-//       id,
-//       email,
-//       mobile,
-//       dob,
-//       doj,
-//       designation,
-//       profilePhoto: req.files['profilePhoto'] ? req.files['profilePhoto'][0].path : null,
-//       offerLetter: req.files['offerLetter'] ? req.files['offerLetter'][0].path : null,
-//       password,
-//     });
-
-//     await user.save();
-//     res.status(201).json({ message: 'User registered successfully' });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
-
 
 app.get("/", (req, res) => {
   res.send("Hello from Express!");
@@ -157,11 +89,7 @@ app.get("/", (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username });
-  if (!user) {
-    return res.status(400).send('Invalid credentials');
-  }
-  const isMatch = await compare(password, user.password);
-  if (!isMatch) {
+  if (!user || user.password !== password) {
     return res.status(400).send('Invalid credentials');
   }
   const token = jwt.sign({ userId: user._id }, jwt_secret, { expiresIn: '1h' });
