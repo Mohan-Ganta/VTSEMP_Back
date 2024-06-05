@@ -157,14 +157,21 @@ app.post('/logout', verifyToken, async (req, res) => {
   }
 });
 
-// Attendance route for a specific user :userId
-app.get('/attendance/', verifyToken, async (req, res) => {
+app.get("/attendance", verifyToken, async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const attendanceData = await UserLog.find({ userId }).populate('userId', 'username');
+    // Extract user ID from the decoded token
+    const userId = req.decoded.id;
+
+    // Fetch attendance data for the user
+    const attendanceData = await UserLog.find({ userId }).populate(
+      "userId",
+      "username"
+    );
+
     res.json(attendanceData);
   } catch (error) {
-    res.status(500).send('Error fetching attendance data');
+    console.error("Error fetching attendance data:", error.message);
+    res.status(500).send("Error fetching attendance data");
   }
 });
 
