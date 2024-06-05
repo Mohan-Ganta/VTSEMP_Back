@@ -52,6 +52,14 @@ const userLogSchema = new mongoose.Schema({
 
 const UserLog = mongoose.model('UserLog', userLogSchema);
 
+// Define Counter schema and model
+const counterSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },
+  seq: { type: Number, default: 0 }
+});
+
+const Counter = mongoose.model('Counter', counterSchema);
+
 // Middleware to verify JWT
 const verifyToken = (req, res, next) => {
   const token = req.header('Authorization') && req.header('Authorization').split(' ')[1];
@@ -89,6 +97,19 @@ const taskSchema = new mongoose.Schema({
 });
 
 const Task = mongoose.model('Task', taskSchema);
+
+const announcementSchema = new mongoose.Schema({
+  message: {
+    type: String,
+    required: true,
+  },
+  dateTime: {
+    type: String,
+    required: true,
+  },
+}, { timestamps: true });
+
+const Announcement = mongoose.model('Announcement', announcementSchema);
 
 app.get("/", (req, res) => {
   res.send("Hello from Express!");
@@ -143,10 +164,29 @@ app.get('/attendance/', verifyToken, async (req, res) => {
 
 
 
+// Initialize counter
+const initializeCounter = async () => {
+  const counter = await Counter.findOne({ name: 'taskId' });
+  if (!counter) {
+    await new Counter({ name: 'taskId', seq: 0 }).save();
+  }
+};
+
+// Get next sequence value
+const getNextSequenceValue = async (sequenceName) => {
+  const counter = await Counter.findOneAndUpdate(
+    { name: sequenceName },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+  return counter.seq;
+};
+
 // Create a new task
 app.post('/tasks', async (req, res) => {
   try {
-    const task = new Task(req.body);
+    const nextId = await getNextSequenceValue('taskId');
+    const task = new Task({ ...req.body, id: nextId });
     await task.save();
     res.status(201).send(task);
   } catch (error) {
@@ -164,17 +204,78 @@ app.get('/tasks', async (req, res) => {
   }
 });
 
+// Delete task by Name
+// app.delete('/tasks/:projectName', async (req, res) => {
+//   const { projectName } = req.params;
+//   try {
+//     const task = await Task.findOneAndDelete({ projectName });
+//     if (!task) {
+//       return res.status(404).send({ message: 'Task not found' });
+//     }
+//     res.send({ message: 'Task deleted successfully' });
+//   } catch (error) {
+//     res.status(500).send(error);
+//   }
+// });
+
+
 // Delete task by ID
-app.delete('/tasks/:projectName', async (req, res) => {
-  const { projectName } = req.params;
+app.delete('/tasks/:id', async (req, res) => {
+  const { id } = req.params;
   try {
-    const task = await Task.findByIdAndDelete(projectName);
+    const task = await Task.findOneAndDelete({ id: parseInt(id) });
     if (!task) {
       return res.status(404).send({ message: 'Task not found' });
     }
     res.send({ message: 'Task deleted successfully' });
   } catch (error) {
     res.status(500).send(error);
+  }
+});
+
+
+// Create Announcement
+app.post('/announcements', async (req, res) => {
+  try {
+    const { message, dateTime } = req.body;
+    const newAnnouncement = new Announcement({ message, dateTime });
+    const savedAnnouncement = await newAnnouncement.save();
+    res.status(201).json({ success: true, announcement: savedAnnouncement });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// Get All Announcements
+app.get('/announcements', async (req, res) => {
+  try {
+    const announcements = await Announcement.find();
+    res.status(200).json({ success: true, announcements });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update Announcement
+app.put('/announcements/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message, dateTime } = req.body;
+    const updatedAnnouncement = await Announcement.findByIdAndUpdate(id, { message, dateTime }, { new: true });
+    res.status(200).json({ success: true, announcement: updatedAnnouncement });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// Delete Announcement
+app.delete('/announcements/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Announcement.findByIdAndDelete(id);
+    res.status(200).json({ success: true, message: "Announcement deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
