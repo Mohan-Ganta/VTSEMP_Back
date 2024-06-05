@@ -33,14 +33,6 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
-const leaveSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  date: { type: Date, default: Date.now },
-  reason: { type: String, required: true },
-  status: { type: String, default: 'Pending' }
-});
-
-const Leave = mongoose.model('Leave', leaveSchema);
 
 // User Log Schema
 const userLogSchema = new mongoose.Schema({
@@ -110,6 +102,35 @@ const announcementSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
+
+// Leave schema
+const leaveSchema = new mongoose.Schema({
+  date: {
+    type: Date,
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  id: {
+    type: String,
+    required: true
+  },
+  reason: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    required: true
+  }
+});
+
+
+const Leave = mongoose.model('Leave', leaveSchema);
+
+
 
 app.get("/", (req, res) => {
   res.send("Hello from Express!");
@@ -284,6 +305,50 @@ app.delete('/announcements/:id', async (req, res) => {
   }
 });
 
+//leave
+// API routes
+app.post('/leave', async (req, res) => {
+  try {
+    const leave = new Leave(req.body);
+    await leave.save();
+    res.status(201).send(leave);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.get('/leave', async (req, res) => {
+  try {
+    const leaves = await Leave.find();
+    res.send(leaves);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+app.patch('/leave/:id', async (req, res) => {
+  try {
+    const leave = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!leave) {
+      return res.status(404).send({ error: 'Leave not found' });
+    }
+    res.send(leave);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.delete('/leave/:id', async (req, res) => {
+  try {
+    const leave = await Leave.findByIdAndDelete(req.params.id);
+    if (!leave) {
+      return res.status(404).send({ error: 'Leave not found' });
+    }
+    res.send(leave);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
 
 
 app.listen(4000, () => {
