@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
+const bodyParser = require('body-parser');
 const cors = require("cors");
 const app = express();
 const jwt_secret = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
@@ -32,23 +32,32 @@ mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWr
 
 
 
-// Mongoose Schema and Model
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  id: { type: String, required: true },
-  email: { type: String, required: true },
-  mobile: { type: String, required: true },
-  dob: { type: Date, required: true },
-  doj: { type: Date, required: true },
-  designation: { type: String, required: true },
-  profilePhoto: { type: String },
-  offerLetter: { type: String },
-  password: { type: String, required: true },
-});
+// // Mongoose Schema and Model
+// const userSchema = new mongoose.Schema({
+//   username: { type: String, required: true },
+//   id: { type: String, required: true },
+//   email: { type: String, required: true },
+//   mobile: { type: String, required: true },
+//   dob: { type: Date, required: true },
+//   doj: { type: Date, required: true },
+//   designation: { type: String, required: true },
+//   profilePhoto: { type: String },
+//   offerLetter: { type: String },
+//   password: { type: String, required: true },
+// });
 
-const User = mongoose.model('User', userSchema);
+// const User = mongoose.model('User', userSchema);
 
 // Leave Schema
+
+// User Schema
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true }
+});
+
+const User = mongoose.model('User', UserSchema);
+
 const leaveSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   date: { type: Date, default: Date.now },
