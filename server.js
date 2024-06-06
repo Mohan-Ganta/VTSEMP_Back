@@ -429,7 +429,7 @@ app.put("/leave/:id", async (req, res) => {
 
 //----profile
 
-app.get('/profile/:empId', async (req, res) => {
+app.get('/user/:empId', async (req, res) => {
   const { empId } = req.params;
 
   try {
