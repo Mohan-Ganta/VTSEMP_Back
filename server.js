@@ -427,6 +427,23 @@ app.put("/leave/:id", async (req, res) => {
   }
 });
 
+//----profile
+
+app.get('/user/:empId', async (req, res) => {
+  const { empId } = req.params;
+
+  try {
+    const user = await User.findOne({ empId });
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
+});
+
 
 
 app.listen(4000, () => {
