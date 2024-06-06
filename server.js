@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const multer = require('multer');
 const app = express();
 const jwt_secret = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
 
@@ -26,12 +27,19 @@ mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWr
 });
 
 // User Schema
-const UserSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+const userSchema = new mongoose.Schema({
+  fullname: { type: String, required: true },
+  phoneNo: { type: String, required: true },
+  email: { type: String, required: true },
+  empId: { type: String, required: true },
+  designation: { type: String, required: true },
+  profileUrl: { type: String, required: true },
+  docUrl: { type: String, required: true },
+  password: { type: String, required: true },
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', userSchema);
+
 
 
 // User Log Schema
@@ -67,16 +75,35 @@ const verifyToken = (req, res, next) => {
 };
 
 // Register route
-app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+// app.post('/register', async (req, res) => {
+//   const { username, password } = req.body;
+//   try {
+//     const user = new User({ username, password });
+//     await user.save();
+//     res.status(201).send('User registered');
+//   } catch (error) {
+//     res.status(400).send('Error registering user');
+//   }
+// });
+
+
+app.post('/add', async (req, res) => {
+  const { fullname, phoneNo, email, empId, designation, profileUrl, docUrl, password } = req.body;
+
+  if (!fullname || !phoneNo || !email || !empId || !designation || !profileUrl || !docUrl || !password) {
+      return res.status(400).json('All fields are required');
+  }
+
+  const newUser = new User({ fullname, phoneNo, email, empId, designation, profileUrl, docUrl, password });
+
   try {
-    const user = new User({ username, password });
-    await user.save();
-    res.status(201).send('User registered');
-  } catch (error) {
-    res.status(400).send('Error registering user');
+      await newUser.save();
+      res.status(200).json('User added successfully');
+  } catch (err) {
+      res.status(400).json('Error: ' + err.message);
   }
 });
+
 
 // Task Schema
 const taskSchema = new mongoose.Schema({
@@ -115,16 +142,73 @@ const leaveSchema = new mongoose.Schema({
 const Leave = mongoose.model("Leave", leaveSchema);
 
 
+//===================================//
 
+const storage = multer.diskStorage({
+  destination: "./src/assets/images",
+  filename: (req, file, cb) => {
+    return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+const upload = multer({ storage: storage });
+
+app.post("/upload/images", upload.single("image"), (req, res) => {
+  try {
+    if (req.file) {
+      console.log(`Uploaded image: ${req.file.filename}`);
+      const imageUrl = `https://vtsemp-back.onrender.com/images/${req.file.filename}`;
+      res.json({ message: "Image uploaded successfully!", image_url: imageUrl });
+    } else {
+      res.status(400).json({ message: "No image uploaded" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error uploading file" });
+  }
+});
+
+app.use("/images", express.static("./src/assets/images"));
+
+
+
+const docStorage = multer.diskStorage({
+  destination: "./src/assets/docs",
+  filename: (req, file, cb) => {
+    return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+
+
+const upload_doc = multer({ storage: docStorage });
+
+
+app.post("/upload/doc", upload.single("file"), (req, res) => {
+  try {
+    if (req.file) {
+      console.log(`Uploaded pdf: ${req.file.filename}`);
+      const docUrl = `https://vtsemp-back.onrender.com/docs/${req.file.filename}`;
+      res.json({ message: "Pdf uploaded successfully!", docurl: docUrl });
+    } else {
+      res.status(400).json({ message: "No pdf uploaded" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error uploading file" });
+  }
+});
+app.use("/docs", express.static("./src/assets/images"));
+
+
+//----------------------------------------- //
 
 app.get("/", (req, res) => {
-  res.send("Hello from Express!");
+  res.send("Hello from VTS!");
 });
 
 // Login route
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  const user = await User.findOne({ username });
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
   if (!user || user.password !== password) {
     return res.status(400).send('Invalid credentials');
   }
