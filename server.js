@@ -429,7 +429,7 @@ app.put("/leave/:id", async (req, res) => {
 
 //----profile
 
-app.get('/user/:empId', async (req, res) => {
+app.get('/profile/:empId', async (req, res) => {
   const { empId } = req.params;
 
   try {
@@ -441,6 +441,20 @@ app.get('/user/:empId', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send('Server error');
+  }
+});
+
+//------
+
+app.get('/employees/:email', async (req, res) => {
+  const { email } = req.params;
+  
+  try {
+    const employees = await User.find({ email });
+    res.json(employees);
+  } catch (error) {
+    console.error("Error fetching employee data:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
