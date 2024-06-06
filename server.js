@@ -24,7 +24,19 @@ mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWr
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('Error connecting to MongoDB', err);
+
+
 });
+
+
+// module.exports = async () => {
+//     try {
+//         await mongoose.connect('mongodb+srv://mohan:mohan@vtsempd.mnlllbe.mongodb.net/?retryWrites=true&w=majority&appName=VTSEMPD', {});
+//         console.log("CONNECTED TO DATABASE SUCCESSFULLY");
+//     } catch (error) {
+//         console.error('COULD NOT CONNECT TO DATABASE:', error.message);
+//     }
+// };
 
 // User Schema
 const userSchema = new mongoose.Schema({
