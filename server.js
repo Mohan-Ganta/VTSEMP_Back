@@ -218,20 +218,34 @@ app.get("/", (req, res) => {
   res.send("Hello from VTS!");
 });
 
-// Login route
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (!user || user.password !== password) {
-    return res.status(400).send('Invalid credentials');
+  
+  try {
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+    
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+    
+    const token = jwt.sign({ id: user._id }, 'jwt_secret', { expiresIn: '1h' });
+
+    res.json({
+      token,
+      logId: user._id,
+      email: user.email,
+      userData: user // Returning full user data
+    });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
-  const token = jwt.sign({ userId: user._id }, jwt_secret, { expiresIn: '1h' });
-
-  // Record login time
-  const userLog = new UserLog({ userId: user._id, loginTime: new Date() });
-  await userLog.save();
-
-  res.json({ token, logId: userLog._id });
 });
 
 // Logout route
