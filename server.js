@@ -218,23 +218,6 @@ app.get("/", (req, res) => {
   res.send("Hello from VTS!");
 });
 
-// // Login route
-// app.post('/login', async (req, res) => {
-//   const { email, password } = req.body;
-//   const user = await User.findOne({ email });
-//   if (!user || user.password !== password) {
-//     return res.status(400).send('Invalid credentials');
-//   }
-//   const token = jwt.sign({ userId: user._id }, jwt_secret, { expiresIn: '1h' });
-
-//   // Record login time
-//   const userLog = new UserLog({ userId: user._id, loginTime: new Date() });
-//   await userLog.save();
-
-//   res.json({ token, logId: userLog._id });
-// });
-
-
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   
@@ -242,17 +225,18 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
     
     if (!user || user.password !== password) {
-      return res.status(400).send('Invalid credentials');
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
+    
     const token = jwt.sign({ userId: user._id }, jwt_secret, { expiresIn: '1h' });
 
-     // Record login time
-  const userLog = new UserLog({ userId: user._id, loginTime: new Date() });
-  await userLog.save();
+    // Record login time
+    const userLog = new UserLog({ userId: user._id, loginTime: new Date() });
+    await userLog.save();
 
-    res.json({
-      token,
-      logId: user._id,
+    res.json({ 
+      token, 
+      logId: userLog._id,
       email: user.email,
       userData: user // Returning full user data
     });
