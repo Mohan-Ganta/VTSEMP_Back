@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path')
 const multer = require('multer');
-const { request } = require('http');
 const app = express();
 const jwt_secret = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
 
@@ -266,37 +265,16 @@ app.post('/logout', verifyToken, async (req, res) => {
   }
 });
 
-// // Attendance route
-// app.get('/attendance/:userId',  (req, res) => {
-//   // try {
-//   //   const attendanceData = await UserLog.find({userId:req.params.userId});
-//   //   res.json(attendanceData);
-//   // } catch (error) {
-//   //   res.status(500).send('Error fetching attendance data');
-//   // }
-//   UserLog.find({userId:req.params.userId})
-//   .then(response=>{res.json(response)})
-//   .catch(err=>{res.json(err)})
-
-
-// });
-
-app.get('/attendance/:userId', verifyToken, async (req, res) => {
+// Attendance route
+app.get('/attendance', verifyToken, async (req, res) => {
   try {
-    const { userId } = req.params; // Extract userId from the route parameters
-    const userLog =  UserLog.find({userId:req.params.userId});
-    if (!userLog) {
-      return res.status(404).send('User log not found');
-    }
-    res.json({ loginTime: userLog.loginTime });
+    const attendanceData = await UserLog.find().populate('userId', 'username');
+    res.json(attendanceData);
   } catch (error) {
     res.status(500).send('Error fetching attendance data');
   }
 });
 
-
-
-app.get()
 
 // Initialize counter
 const initializeCounter = async () => {
