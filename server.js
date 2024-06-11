@@ -267,13 +267,18 @@ app.post('/logout', verifyToken, async (req, res) => {
 });
 
 // Attendance route
-app.get('/attendance/:userId', verifyToken, async (req, res) => {
-  try {
-    const attendanceData = await UserLog.find({userId:req.params.userId});
-    res.json(attendanceData);
-  } catch (error) {
-    res.status(500).send('Error fetching attendance data');
-  }
+app.get('/attendance/:userId', verifyToken,  (req, res) => {
+  // try {
+  //   const attendanceData = await UserLog.find({userId:req.params.userId});
+  //   res.json(attendanceData);
+  // } catch (error) {
+  //   res.status(500).send('Error fetching attendance data');
+  // }
+  UserLog.find({userId:req.params.userId})
+  .then(response=>{res.json(response)})
+  .catch(err=>{res.json(err)})
+
+
 });
 
 
