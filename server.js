@@ -267,7 +267,7 @@ app.post('/logout', verifyToken, async (req, res) => {
 });
 
 // Attendance route
-app.get('/attendance/:userId', verifyToken,  (req, res) => {
+app.get('/attendance/:userId',  (req, res) => {
   // try {
   //   const attendanceData = await UserLog.find({userId:req.params.userId});
   //   res.json(attendanceData);
