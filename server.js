@@ -412,7 +412,7 @@ app.delete('/announcements/:id', async (req, res) => {
 });
 
 
-app.get("/leave:id", async (req, res) => {
+app.get("/leave/:id", async (req, res) => {
   try {
     const leaveRequests = await Leave.find({userId:req.params.id});
     res.json(leaveRequests);
