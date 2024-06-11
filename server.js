@@ -448,7 +448,7 @@ app.post("/leave", async (req, res) => {
 
 app.put("/leave/:id", async (req, res) => {
   try {
-    const leave = await Leave.find({userId:req.params.id});
+    const leave = await Leave.findById(req.params.id);
     if (leave == null) {
       return res.status(404).json({ message: "Leave request not found" });
     }
