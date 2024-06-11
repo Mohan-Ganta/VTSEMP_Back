@@ -412,9 +412,9 @@ app.delete('/announcements/:id', async (req, res) => {
 });
 
 
-app.get("/leave", async (req, res) => {
+app.get("/leave:id", async (req, res) => {
   try {
-    const leaveRequests = await Leave.find();
+    const leaveRequests = await Leave.find({userId:req.params.id});
     res.json(leaveRequests);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -423,6 +423,7 @@ app.get("/leave", async (req, res) => {
 
 app.post("/leave", async (req, res) => {
   const leave = new Leave({
+    userId:req.body.userId,
     name: req.body.name,
     id: req.body.id,
     reason: req.body.reason,
@@ -437,7 +438,7 @@ app.post("/leave", async (req, res) => {
 
 app.put("/leave/:id", async (req, res) => {
   try {
-    const leave = await Leave.findById(req.params.id);
+    const leave = await Leave.find({userId:req.params.id});
     if (leave == null) {
       return res.status(404).json({ message: "Leave request not found" });
     }
