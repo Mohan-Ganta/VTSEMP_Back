@@ -421,6 +421,16 @@ app.get("/leave/:id", async (req, res) => {
   }
 });
 
+app.get("/leave", async (req, res) => {
+  try {
+    const leaveRequests = await Leave.find();
+    res.json(leaveRequests);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 app.post("/leave", async (req, res) => {
   const leave = new Leave({
     userId:req.body.userId,
