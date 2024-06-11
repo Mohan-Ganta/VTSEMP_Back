@@ -146,6 +146,7 @@ const Announcement = mongoose.model('Announcement', announcementSchema);
 // MongoDB Schema
 const leaveSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   name: String,
   id: String,
   reason: String,
