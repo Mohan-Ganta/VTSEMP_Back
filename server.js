@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path')
 const multer = require('multer');
+const { request } = require('http');
 const app = express();
 const jwt_secret = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcxNjk1NTUwOSwiaWF0IjoxNzE2OTU1NTA5fQ.27ULRvW_fhBdaOrgDyjWOlrMwtDeVRe-hcrc6f4JoM4';
 
@@ -98,7 +99,6 @@ const verifyToken = (req, res, next) => {
 //     res.status(400).send('Error registering user');
 //   }
 // });
-
 
 app.post('/add', async (req, res) => {
   const { fullname, phoneNo, email, empId, designation, profileUrl, docUrl, password } = req.body;
@@ -212,7 +212,7 @@ app.post("/upload/doc", upload.single("file"), (req, res) => {
 app.use("/docs", express.static("./src/assets/images"));
 
 
-//----------------------------------------- //
+// ----------------------------------------- //
 
 app.get("/", (req, res) => {
   res.send("Hello from VTS!");
@@ -267,9 +267,9 @@ app.post('/logout', verifyToken, async (req, res) => {
 });
 
 // Attendance route
-app.get('/attendance', verifyToken, async (req, res) => {
+app.get('/attendance/:userId', verifyToken, async (req, res) => {
   try {
-    const attendanceData = await UserLog.find().populate('userId', 'username');
+    const attendanceData = await UserLog.find({userId:req.params.userId});
     res.json(attendanceData);
   } catch (error) {
     res.status(500).send('Error fetching attendance data');
@@ -277,7 +277,7 @@ app.get('/attendance', verifyToken, async (req, res) => {
 });
 
 
-
+app.get()
 
 // Initialize counter
 const initializeCounter = async () => {
@@ -439,7 +439,7 @@ app.put("/leave/:id", async (req, res) => {
   }
 });
 
-//----profile
+// ----profile
 
 app.get('/user/:empId', async (req, res) => {
   const { empId } = req.params;
